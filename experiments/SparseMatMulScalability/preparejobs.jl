@@ -39,32 +39,38 @@ function jobdict(params)
 end
 
 function create_dicts(num_nodes,nc_per_proc)
-  N = length(num_nodes)
+  N = length(num_nodes)*length(nc_per_proc)
   dicts = Vector{Dict{Symbol,Any}}(undef,N)
-  for (k,nN) in enumerate(num_nodes)
+
+  k = 1
+  for nN in num_nodes
     px = 6*nN
     py = 8*nN
-    nx = px * nc_per_proc
-    ny = py * nc_per_proc
-    
-    dicts[k] = Dict{Symbol,Any}(
-      :np = (px,py)
-      :nc = (nx,ny)
-    )
+
+    for nC in nc_per_proc
+      nx = px * nC
+      ny = py * nC
+      
+      dicts[k] = Dict{Symbol,Any}(
+        :np => (px,py),
+        :nc => (nx,ny),
+      )
+      k += 1
+    end
   end
   return dicts
 end
 
 ############################################
-num_nodes = [1,2,4,8]
-nc_per_proc = 10
+num_nodes = [1,2]
+nc_per_proc = [8,9,10,11,12]
 
 dicts = create_dicts(num_nodes,nc_per_proc)
 
 template = read(projectdir("jobtemplate.sh"),String)
 for params in dicts
    fparams = convert_nc_np_to_prod(params)
-   jobfile = datadir(jobname(fparams,"sh"))
+   jobfile = projectdir("jobs/",jobname(fparams,"sh"))
    open(jobfile,"w") do io
      render(io,template,jobdict(params))
    end
