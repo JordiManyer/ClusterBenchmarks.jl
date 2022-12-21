@@ -2,7 +2,7 @@ using Mustache
 using DrWatson
 
 jobname(args...) = replace(savename(args...;connector="_"),"="=>"_")
-driverdir(args...) = normpath(projectdir("..",args...))
+driverdir(args...) = normpath(projectdir("../..",args...))
 
 
 function convert_nc_np_to_prod(d)
@@ -48,8 +48,8 @@ function create_dicts(num_nodes,nc_per_proc)
     py = 8*nN
 
     for nC in nc_per_proc
-      nx = px * nC
-      ny = py * nC
+      nx = px * 2^nC
+      ny = py * 2^nC
       
       dicts[k] = Dict{Symbol,Any}(
         :np => (px,py),

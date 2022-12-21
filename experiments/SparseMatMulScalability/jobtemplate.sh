@@ -12,4 +12,4 @@
 source {{{modules}}}
 
 mpiexec -n {{n}} julia --project={{{projectdir}}} -O3 --check-bounds=no -e\
-      'using ClusterBenchmarks; ClusterBenchmarks.sparse_matmult_main(nc={{nc}},np={{np}},title="{{{title}}}")'
+      'using ClusterBenchmarks; ClusterBenchmarks.sparse_matmul_main(nc={{nc}},np={{np}},title="{{{title}}}")'
