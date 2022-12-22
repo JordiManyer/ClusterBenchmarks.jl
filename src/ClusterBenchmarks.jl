@@ -3,6 +3,7 @@ module ClusterBenchmarks
 using FileIO
 using MPI
 using LinearAlgebra
+using SparseArrays
 using PartitionedArrays
 using Gridap
 using GridapDistributed

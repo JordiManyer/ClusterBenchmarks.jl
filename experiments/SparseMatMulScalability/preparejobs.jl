@@ -20,6 +20,7 @@ end
 function jobdict(params)
   np = params[:np]
   nc = params[:nc]
+  order = params[:order]
   fparams = convert_nc_np_to_prod(params)
   return Dict(
   "q" => "normal",
@@ -32,40 +33,46 @@ function jobdict(params)
   "nc" => nc,
   "n" => prod(np),
   "np" => np,
+  "order" => order,
   "projectdir" => driverdir(),
   "modules" => driverdir("modules.sh"),
   "title" => datadir(jobname(fparams))
   )
 end
 
-function create_dicts(num_nodes,nc_per_proc)
-  N = length(num_nodes)*length(nc_per_proc)
+function create_dicts(num_nodes,nc_per_proc,orders)
+  N = length(num_nodes)*length(nc_per_proc)*length(orders)
   dicts = Vector{Dict{Symbol,Any}}(undef,N)
 
   k = 1
   for nN in num_nodes
-    px = 6*nN
-    py = 8*nN
+    np = 48*nN
+    px = np÷8
+    py = np÷6
 
     for nC in nc_per_proc
       nx = px * 2^nC
-      ny = py * 2^nC
-      
-      dicts[k] = Dict{Symbol,Any}(
-        :np => (px,py),
-        :nc => (nx,ny),
-      )
-      k += 1
+      ny = py * 2^(nC+1)
+
+      for order in orders
+        dicts[k] = Dict{Symbol,Any}(
+          :np    => (px,py),
+          :nc    => (nx,ny),
+          :order => order,
+        )
+        k += 1
+      end
     end
   end
   return dicts
 end
 
 ############################################
-num_nodes = [1,2]
-nc_per_proc = [8,9,10,11,12]
+num_nodes = [1,2,3,4]
+nc_per_proc = [3,4,5,6,7,8,9,10]
+orders = [1]
 
-dicts = create_dicts(num_nodes,nc_per_proc)
+dicts = create_dicts(num_nodes,nc_per_proc,orders)
 
 template = read(projectdir("jobtemplate.sh"),String)
 for params in dicts
