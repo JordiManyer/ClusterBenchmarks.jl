@@ -1,5 +1,4 @@
 module load openmpi/4.1.2
-export JULIA_MPI_BINARY=system
 export JULIA_MPI_PATH=/apps/openmpi/4.1.2
 export UCX_ERROR_SIGNALS="SIGILL,SIGBUS,SIGFPE"
 

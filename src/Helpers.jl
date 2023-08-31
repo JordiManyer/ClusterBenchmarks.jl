@@ -1,6 +1,4 @@
 
-
-function mytic!(t,comm)
-  MPI.Barrier(comm)
-  PartitionedArrays.tic!(t)
+function SparseArrays.nnz(a::PSparseMatrix)
+  sum(map(nnz,partition(a)))
 end

@@ -1,10 +1,10 @@
 name = "ClusterBenchmarks"
 uuid = "7098becd-f502-4273-b345-8f9e53fe9516"
-authors = ["JordiManyer <j.manyer@hotmail.com>"]
+authors = ["JordiManyer <jordi.manyer@monash.edu>"]
 version = "0.1.0"
 
 [deps]
-ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+BlockArrays = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 Gridap = "56d4f2e9-7ea1-5844-9cf6-b9c51ca7ce8e"
 GridapDistributed = "f9701e48-63b3-45aa-9a63-9bc6c271f355"
@@ -13,3 +13,10 @@ MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 PartitionedArrays = "5a9dfac6-5c52-46f7-8278-5e2210713be9"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+GridapDistributed = "0.3"
+PartitionedArrays = "0.3"
+
+[extras]
+MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"

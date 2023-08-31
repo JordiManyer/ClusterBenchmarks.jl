@@ -1,16 +1,7 @@
 
-
-function SparseArrays.nnz(A::PartitionedArrays.PSparseMatrix)
-  nonzeros = map_parts(A.values) do a
-    nnz(a)
-  end
-  return sum(nonzeros)
-end
-
-function sparse_matmul_compile(parts,partition,order)
-  comm   = parts.comm
+function sparse_matmul_compile(ranks,rank_partition,mesh_partition,order)
   domain = (1,0,1,0)
-  model  = CartesianDiscreteModel(parts,domain,partition)
+  model  = CartesianDiscreteModel(ranks,rank_partition,domain,mesh_partition)
 
   qdegree = 2*(order+1)
   sol(x)  = x[1]+x[2]
@@ -22,23 +13,21 @@ function sparse_matmul_compile(parts,partition,order)
   dΩ = Measure(Ω,qdegree)
   a(u,v) = ∫(∇(v)⋅∇(u)) * dΩ
   A = assemble_matrix(a,U,V)
-  x = PVector(1.0,A.cols)
-  y = PVector(0.0,A.rows)
+  x = pfill(1.0,partition(axes(A,2)))
+  y = pfill(0.0,partition(axes(A,1)))
   mul!(y,A,x)
 
-  allocs = map_parts(parts) do _p
+  allocs = map(ranks) do _p
     VectorValue(1,2,3,4)
   end
   allocs = sum(allocs)
-
 end
 
-function sparse_matmul_driver(parts,t,outputs,partition,order)
-  comm   = parts.comm
+function sparse_matmul_driver(ranks,rank_partition,mesh_partition,order,t,outputs)
 
   model_alloc = @allocated begin
-  domain = (1,0,1,0)
-    model  = CartesianDiscreteModel(parts,domain,partition)
+    domain = (1,0,1,0)
+    model  = CartesianDiscreteModel(ranks,rank_partition,domain,mesh_partition)
   end
 
   fespaces_alloc = @allocated begin
@@ -57,8 +46,8 @@ function sparse_matmul_driver(parts,t,outputs,partition,order)
   system_alloc = @allocated begin
     a(u,v) = ∫(∇(v)⋅∇(u)) * dΩ
     A = assemble_matrix(a,U,V)
-    x = PVector(1.0,A.cols)
-    y = PVector(0.0,A.rows)
+    x = pfill(1.0,partition(axes(A,2)))
+    y = pfill(0.0,partition(axes(A,1)))
   end
 
   ndofs    = size(A,1)
@@ -69,18 +58,18 @@ function sparse_matmul_driver(parts,t,outputs,partition,order)
 
   niter = 200
   for k in 1:niter
-    mytic!(t,comm)
+    tic!(t;barrier=true)
     mul!(y,A,x)
-    PartitionedArrays.toc!(t,"time_$k")
+    toc!(t,"time_$k")
   end
 
-  allocs = map_parts(parts) do _p
+  allocs = map(ranks) do _p
     VectorValue(model_alloc,fespaces_alloc,measure_alloc,system_alloc)
   end
   allocs = sum(allocs)
 
   map_main(t.data) do t_data
-    time = 0.0
+    time = 1.e10
     for k in 1:niter
       time = min(time,t_data["time_$k"][:max])
     end
@@ -99,19 +88,20 @@ function sparse_matmul_driver(parts,t,outputs,partition,order)
   end
 end
 
-
 function sparse_matmul_main(;title::AbstractString,np::Tuple,nc::Tuple,order::Int)
-  prun(mpi,np) do parts
-    sparse_matmul_compile(parts,nc,order)
+  with_mpi() do distribute
+    ranks = distribute(LinearIndices((prod(np),)))
+    sparse_matmul_compile(ranks,np,nc,order)
 
-    t = PTimer(parts,verbose=true)
+    t = PTimer(ranks,verbose=true)
     outputs = Dict{String,Any}()
-    allocs  = @allocated sparse_matmul_driver(parts,t,outputs,nc,order)
+    allocs  = @allocated sparse_matmul_driver(ranks,np,nc,order,t,outputs)
     
     map_main(t.data) do timer_data
       outputs["ARCH"] = Sys.ARCH
       outputs["CPU"]  = Sys.CPU_NAME
       outputs["num_procs"] = prod(np)
+      outputs["num_cells"] = nc
       outputs["order"] = order
       outputs["allocated_total_MB"] = allocs/2^20
       merge!(outputs,timer_data)
