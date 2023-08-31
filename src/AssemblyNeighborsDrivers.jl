@@ -80,14 +80,14 @@ function assembly_neighbors_main(;title::AbstractString,np::Tuple,case::Symbol)
     parts_snd = assembly_neighbors_setup(Val(case),ranks,np)
 
     outputs = Dict{String,Any}()
-    assembly_neighbors_driver(outputs,parts_snd,title)
+    assembly_neighbors_driver(outputs,parts_snd,string(case))
     
     map_main(ranks) do r
       outputs["ARCH"] = Sys.ARCH
       outputs["CPU"]  = Sys.CPU_NAME
       outputs["num_procs"] = prod(np)
+      outputs["case"] = case
       save("$title.bson",outputs)
     end
   end
 end
-
