@@ -17,4 +17,7 @@ include("Helpers.jl")
 include("SparseMatMulDrivers.jl")
 export sparse_matmul_main
 
+include("AssemblyNeighborsDrivers.jl")
+export assembly_neighbors_main
+
 end
