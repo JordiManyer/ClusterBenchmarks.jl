@@ -1,5 +1,5 @@
-module load openmpi/4.1.2
-export JULIA_MPI_PATH=/apps/openmpi/4.1.2
+module load openmpi/4.1.4
+export JULIA_MPI_PATH=/apps/openmpi/4.1.4
 export UCX_ERROR_SIGNALS="SIGILL,SIGBUS,SIGFPE"
 
 # This is for avoiding openmpi problems in gadi:
