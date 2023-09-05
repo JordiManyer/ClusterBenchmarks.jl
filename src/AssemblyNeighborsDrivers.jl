@@ -31,16 +31,15 @@ function assembly_neighbors_driver(outputs,parts_snd,name,find_rcv_ids)
   t = PTimer(ranks,verbose=true)
 
   # Warmup
-  graph = ExchangeGraph(parts_snd;find_rcv_ids=find_rcv_ids)
+  for _k in 1:10
+    graph = ExchangeGraph(parts_snd;find_rcv_ids=find_rcv_ids)
+  end
 
   # Benchmark
-  niter  = 20 # Number of recorded times
-  ninner = 10 # Number of iterations in a single recording
+  niter  = 100 # Number of recorded times
   for k in 1:niter
     tic!(t;barrier=true)
-    for _k in 1:ninner
-      graph = ExchangeGraph(parts_snd;find_rcv_ids=find_rcv_ids)
-    end
+    graph = ExchangeGraph(parts_snd;find_rcv_ids=find_rcv_ids)
     toc!(t,string(name,"_$k"))
   end
 
@@ -51,7 +50,7 @@ function assembly_neighbors_driver(outputs,parts_snd,name,find_rcv_ids)
   times = Dict{String,Any}()
   map_main(t.data) do t_data
     for k in 1:niter
-      tk = t_data[string(name,"_$k")][:max]/ninner
+      tk = t_data[string(name,"_$k")][:max]
       tmin  = min(tmin,tk)
       tmean += tk
       tmax  = max(tmax,tk)
