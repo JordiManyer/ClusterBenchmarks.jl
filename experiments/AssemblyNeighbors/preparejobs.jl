@@ -38,7 +38,7 @@ function jobdict(params)
 end
 
 function create_dicts(num_nodes,cases,dims)
-  N = length(num_nodes)*length(cases)
+  N = length(num_nodes)*length(cases)*length(dims)
   dicts = Vector{Dict{Symbol,Any}}(undef,N)
 
   k = 1
@@ -48,7 +48,7 @@ function create_dicts(num_nodes,cases,dims)
       np = (D==2) ? nN.*(8,6) : nN.*(4,4,3)
       for case in cases
         dicts[k] = Dict{Symbol,Any}(
-          :D     => dim,
+          :D     => D,
           :np    => np,
           :case  => case,
         )
@@ -60,9 +60,9 @@ function create_dicts(num_nodes,cases,dims)
 end
 
 ############################################
-num_nodes = [1,2,3,4]
+num_nodes = [6,8]
 cases = [:uniform]
-dims  = [2,3]
+dims  = [2]
 
 dicts = create_dicts(num_nodes,cases,dims)
 
