@@ -4,7 +4,6 @@ using DrWatson
 jobname(args...) = replace(savename(args...;connector="_"),"="=>"_")
 driverdir(args...) = normpath(projectdir("../..",args...))
 
-
 function convert_nc_np_to_prod(d)
   o=Dict()
   for k in keys(d)
@@ -38,21 +37,23 @@ function jobdict(params)
   )
 end
 
-function create_dicts(num_nodes,cases)
+function create_dicts(num_nodes,cases,dims)
   N = length(num_nodes)*length(cases)
   dicts = Vector{Dict{Symbol,Any}}(undef,N)
 
   k = 1
-  for nN in num_nodes
-    np = 48*nN
-    px = np÷8
-    py = np÷6
-    for case in cases
-      dicts[k] = Dict{Symbol,Any}(
-        :np    => (px,py),
-        :case  => case,
-      )
-      k += 1
+  for D in dims
+    @assert D ∈ [2,3]
+    for nN in num_nodes
+      np = (D==2) ? nN.*(8,6) : nN.*(4,4,3)
+      for case in cases
+        dicts[k] = Dict{Symbol,Any}(
+          :D     => dim,
+          :np    => np,
+          :case  => case,
+        )
+        k += 1
+      end
     end
   end
   return dicts
@@ -60,9 +61,10 @@ end
 
 ############################################
 num_nodes = [1,2,3,4]
-cases = [:all,:uniform]
+cases = [:uniform]
+dims  = [2,3]
 
-dicts = create_dicts(num_nodes,cases)
+dicts = create_dicts(num_nodes,cases,dims)
 
 template = read(projectdir("jobtemplate.sh"),String)
 for params in dicts

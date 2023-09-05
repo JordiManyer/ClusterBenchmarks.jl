@@ -8,7 +8,7 @@ function assembly_neighbors_setup(::Val{:all},ranks,np)
 end
 
 function assembly_neighbors_setup(::Val{:uniform},ranks,np)
-  n = map(npi -> 10*npi,np)
+  n = map(npi -> 5*npi,np)
   ghost   = map(npi->true,np)
   indices = uniform_partition(ranks,np,n,ghost)
 
@@ -68,9 +68,9 @@ function assembly_neighbors_driver(outputs,parts_snd,name,find_rcv_ids)
   end
 end
 
-function assembly_neighbors_driver(outputs,parts_snd,name)
-  assembly_neighbors_driver(outputs,parts_snd,string(name,"_gatherscatter"),PartitionedArrays.find_rcv_ids_gather_scatter)
-  assembly_neighbors_driver(outputs,parts_snd,string(name,"_ibarrier"),PartitionedArrays.find_rcv_ids_ibarrier)
+function assembly_neighbors_driver(outputs,parts_snd)
+  assembly_neighbors_driver(outputs,parts_snd,"gatherscatter",PartitionedArrays.find_rcv_ids_gather_scatter)
+  assembly_neighbors_driver(outputs,parts_snd,"ibarrier",PartitionedArrays.find_rcv_ids_ibarrier)
 end
 
 function assembly_neighbors_main(;title::AbstractString,np::Tuple,case::Symbol)
@@ -80,7 +80,7 @@ function assembly_neighbors_main(;title::AbstractString,np::Tuple,case::Symbol)
     parts_snd = assembly_neighbors_setup(Val(case),ranks,np)
 
     outputs = Dict{String,Any}()
-    assembly_neighbors_driver(outputs,parts_snd,string(case))
+    assembly_neighbors_driver(outputs,parts_snd)
     
     map_main(ranks) do r
       outputs["ARCH"] = Sys.ARCH
